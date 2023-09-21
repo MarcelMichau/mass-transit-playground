@@ -1,8 +1,6 @@
 using System.Reflection;
 using MassTransit;
-using MassTransit.Configuration;
 using Microsoft.EntityFrameworkCore;
-using TestApi;
 using WeatherApi;
 
 var builder = WebApplication.CreateBuilder(args);
