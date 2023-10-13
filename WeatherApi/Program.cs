@@ -20,7 +20,6 @@ builder.Services.AddMassTransit(configure =>
     configure.AddConsumers(entryAssembly);
 
     configure.SetKebabCaseEndpointNameFormatter();
-
     configure.AddEntityFrameworkOutbox<WeatherDbContext>(o =>
     {
         // configure which database lock provider to use (Postgres, SqlServer, or MySql)
@@ -30,9 +29,8 @@ builder.Services.AddMassTransit(configure =>
         o.UseBusOutbox();
     });
 
-    configure.UsingAzureServiceBus((context, cfg) =>
+    configure.UsingInMemory((context, cfg) =>
     {
-        cfg.Host(new Uri("sb://sb-marcel-michau-test.servicebus.windows.net"));
         cfg.ConfigureEndpoints(context);
     });
 });
@@ -89,3 +87,7 @@ app.MapGet("/weatherforecast/{id:guid}",
     .WithOpenApi();
 
 app.Run();
+
+public partial class Program
+{
+}

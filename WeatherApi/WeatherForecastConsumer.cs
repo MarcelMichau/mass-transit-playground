@@ -42,5 +42,9 @@ public class WeatherForecastConsumer : IConsumer<WeatherForecastRequestMessage>
 
             await _context.SaveChangesAsync();
         }
+        else
+        {
+            _logger.LogWarning("Forecast with Id {Id} not found", context.Message.Id);
+        }
     }
 }
