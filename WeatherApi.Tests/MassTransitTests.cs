@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using DotNet.Testcontainers.Builders;
 using FluentAssertions;
 using MassTransit;
 using MassTransit.Testing;
@@ -22,10 +23,14 @@ public class MassTransitTests : IAsyncLifetime
 
     private readonly MsSqlContainer _dbContainer = new MsSqlBuilder()
         .WithImage("mcr.microsoft.com/mssql/server:latest")
+        //.WithPortBinding(1433, 1433)
+        //.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(1433))
         .Build();
 
     private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder()
-        .WithImage("masstransit/rabbitmq").Build();
+        //.WithPortBinding(5672, 5672)
+        //.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5672))
+        .Build();
 
     private readonly ITestOutputHelper _testOutputHelper;
 
@@ -60,14 +65,16 @@ public class MassTransitTests : IAsyncLifetime
                 {
                     cfg.AddConsumer<WeatherForecastConsumer>();
 
-                    cfg.AddEntityFrameworkOutbox<WeatherDbContext>(o =>
-                    {
-                        o.UseSqlServer();
-                        o.UseBusOutbox();
-                    });
+                    //cfg.AddEntityFrameworkOutbox<WeatherDbContext>(o =>
+                    //{
+                    //    o.UseSqlServer();
+                    //    o.UseBusOutbox();
+                    //});
 
                     cfg.UsingRabbitMq((context, config) =>
                     {
+                        config.Host(_rabbitMqContainer.GetConnectionString());
+
                         config.ConfigureEndpoints(context);
                     });
                 }));
@@ -92,9 +99,9 @@ public class MassTransitTests : IAsyncLifetime
     [InlineData("JustOutsideNowhere")]
     public async Task PublisherShouldPublish(string location)
     {
-        using var client = _webApplicationFactory.CreateClient();
-
         var harness = _webApplicationFactory.Services.GetTestHarness();
+
+        var client = _webApplicationFactory.CreateClient();
 
         var response = await client.PostAsJsonAsync($"weatherforecast?location={location}", new {});
 

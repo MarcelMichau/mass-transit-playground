@@ -88,6 +88,4 @@ app.MapGet("/weatherforecast/{id:guid}",
 
 app.Run();
 
-public partial class Program
-{
-}
+public partial class Program;
