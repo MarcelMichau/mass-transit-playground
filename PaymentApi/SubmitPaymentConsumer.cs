@@ -2,9 +2,9 @@
 
 namespace PaymentApi;
 
-public class PaymentSubmissionConsumer(IPublishEndpoint publishEndpoint, ILogger<PaymentSubmissionConsumer> logger)
+public class SubmitPaymentConsumer(IPublishEndpoint publishEndpoint, ILogger<SubmitPaymentConsumer> logger) : IConsumer<PaymentApproved>
 {
-    public async Task SubmitPayment(ConsumeContext<PaymentApproved> context)
+    public async Task Consume(ConsumeContext<PaymentApproved> context)
     {
         logger.LogInformation("Submitting payment: {PaymentId} - approved with reason: {ApprovalReason}", context.Message.PaymentId, context.Message.Reason);
 

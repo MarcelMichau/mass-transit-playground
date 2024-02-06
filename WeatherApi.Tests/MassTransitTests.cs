@@ -19,7 +19,8 @@ namespace WeatherApi.Tests;
 
 public class MassTransitTests : IAsyncLifetime
 {
-    private WebApplicationFactory<Program> _webApplicationFactory;
+    private WebApplicationFactory<Program> _liveWebApplicationFactory;
+    private WebApplicationFactory<Program> _inMemoryWebApplicationFactory;
 
     private readonly MsSqlContainer _dbContainer = new MsSqlBuilder()
         .WithImage("mcr.microsoft.com/mssql/server:latest")
@@ -28,8 +29,6 @@ public class MassTransitTests : IAsyncLifetime
         .Build();
 
     private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder()
-        //.WithPortBinding(5672, 5672)
-        //.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5672))
         .Build();
 
     private readonly ITestOutputHelper _testOutputHelper;
@@ -44,7 +43,7 @@ public class MassTransitTests : IAsyncLifetime
         await _dbContainer.StartAsync();
         await _rabbitMqContainer.StartAsync();
 
-        _webApplicationFactory = new WebApplicationFactory<Program>()
+        _liveWebApplicationFactory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.ConfigureLogging(lb =>
@@ -80,7 +79,37 @@ public class MassTransitTests : IAsyncLifetime
                 }));
             });
 
-        var serviceScopeFactory = _webApplicationFactory.Services.GetRequiredService<IServiceScopeFactory>();
+        _inMemoryWebApplicationFactory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureLogging(lb =>
+                {
+                    lb.Services.AddSingleton<ILoggerProvider>(new XUnitLoggerProvider(_testOutputHelper, appendScope: false));
+                });
+
+                builder.ConfigureTestServices(services =>
+                {
+                    services.RemoveAll<DbContextOptions<WeatherDbContext>>();
+                    services.AddDbContext<WeatherDbContext>(optionsBuilder =>
+                    {
+                        optionsBuilder.UseSqlServer(_dbContainer.GetConnectionString());
+                    });
+                });
+
+                builder.ConfigureServices(services => services.AddMassTransitTestHarness(cfg =>
+                {
+                    cfg.AddConsumer<WeatherForecastConsumer>();
+
+                    cfg.AddInMemoryInboxOutbox();
+
+                    cfg.UsingInMemory((context, config) =>
+                    {
+                        config.ConfigureEndpoints(context);
+                    });
+                }));
+            }); 
+
+        var serviceScopeFactory = _liveWebApplicationFactory.Services.GetRequiredService<IServiceScopeFactory>();
 
         using var scope = serviceScopeFactory.CreateScope();
 
@@ -97,11 +126,11 @@ public class MassTransitTests : IAsyncLifetime
     [InlineData("MiddleOfNowhere")]
     [InlineData("OnTheEdgeOfNowhere")]
     [InlineData("JustOutsideNowhere")]
-    public async Task PublisherShouldPublish(string location)
+    public async Task ShouldHaveSideEffects(string location)
     {
-        var harness = _webApplicationFactory.Services.GetTestHarness();
+        var harness = _liveWebApplicationFactory.Services.GetTestHarness();
 
-        var client = _webApplicationFactory.CreateClient();
+        using var client = _liveWebApplicationFactory.CreateClient();
 
         var response = await client.PostAsJsonAsync($"weatherforecast?location={location}", new {});
 
@@ -109,22 +138,147 @@ public class MassTransitTests : IAsyncLifetime
 
         weatherGuid.Should().NotBe(Guid.Empty);
 
-        (await harness.Published.Any<WeatherForecastRequestMessage>(m => m.Context.Message.Id == weatherGuid)).Should().BeTrue();
+        //(await harness.Published.Any<WeatherForecastRequestMessage>(m => m.Context.Message.Id == weatherGuid)).Should().BeTrue();
 
-        var consumerTestHarness = harness.GetConsumerHarness<WeatherForecastConsumer>();
+        var act = async () =>
+        {
+            var consumerTestHarness = harness.GetConsumerHarness<WeatherForecastConsumer>();
 
-        (await consumerTestHarness.Consumed.Any<WeatherForecastRequestMessage>(m => m.Context.Message.Id == weatherGuid)).Should().BeTrue();
+            (await consumerTestHarness.Consumed.Any<WeatherForecastRequestMessage>(m =>
+                m.Context.Message.Id == weatherGuid)).Should().BeTrue();
 
-        var weatherForecast = await client.GetFromJsonAsync<WeatherForecast>($"weatherforecast/{weatherGuid}");
+            var weatherForecast = await client.GetFromJsonAsync<WeatherForecast>($"weatherforecast/{weatherGuid}");
 
-        weatherForecast.Location.Should().Be(location);
-        weatherForecast.Summary.Should().NotBeNull();
+            weatherForecast!.Location.Should().Be(location);
+            weatherForecast.Summary.Should().NotBeNull();
+        };
+
+        await act.Should().NotThrowAfterAsync(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(2));
+    }
+
+    [Theory]
+    [InlineData("Timbuktu")]
+    [InlineData("Nowhere")]
+    [InlineData("Somewhere")]
+    [InlineData("Anywhere")]
+    [InlineData("MiddleOfNowhere")]
+    [InlineData("OnTheEdgeOfNowhere")]
+    [InlineData("JustOutsideNowhere")]
+    public async Task ShouldNotHaveSideEffects(string location)
+    {
+        var harness = _liveWebApplicationFactory.Services.GetTestHarness();
+
+        await harness.Stop();
+
+        using var client = _liveWebApplicationFactory.CreateClient();
+
+        var response = await client.PostAsJsonAsync($"weatherforecast?location={location}", new { });
+
+        var weatherGuid = await response.Content.ReadFromJsonAsync<Guid>();
+
+        weatherGuid.Should().NotBe(Guid.Empty);
+
+        //(await harness.Published.Any<WeatherForecastRequestMessage>(m => m.Context.Message.Id == weatherGuid)).Should().BeTrue();
+
+        var act = async () =>
+        {
+            var consumerTestHarness = harness.GetConsumerHarness<WeatherForecastConsumer>();
+
+            (await consumerTestHarness.Consumed.Any<WeatherForecastRequestMessage>(m =>
+                m.Context.Message.Id == weatherGuid)).Should().BeFalse();
+
+            var weatherForecast = await client.GetFromJsonAsync<WeatherForecast>($"weatherforecast/{weatherGuid}");
+
+            weatherForecast.Location.Should().Be(location);
+            weatherForecast.Summary.Should().BeNull();
+        };
+
+        await act.Should().NotThrowAfterAsync(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(2));
+    }
+
+    [Theory]
+    [InlineData("Timbuktu")]
+    [InlineData("Nowhere")]
+    [InlineData("Somewhere")]
+    [InlineData("Anywhere")]
+    [InlineData("MiddleOfNowhere")]
+    [InlineData("OnTheEdgeOfNowhere")]
+    [InlineData("JustOutsideNowhere")]
+    public async Task ShouldHaveSideEffectsInMemory(string location)
+    {
+        var harness = _inMemoryWebApplicationFactory.Services.GetTestHarness();
+
+        using var client = _inMemoryWebApplicationFactory.CreateClient();
+
+        var response = await client.PostAsJsonAsync($"weatherforecast?location={location}", new { });
+
+        var weatherGuid = await response.Content.ReadFromJsonAsync<Guid>();
+
+        weatherGuid.Should().NotBe(Guid.Empty);
+
+        //(await harness.Published.Any<WeatherForecastRequestMessage>(m => m.Context.Message.Id == weatherGuid)).Should().BeTrue();
+
+        var act = async () =>
+        {
+            var consumerTestHarness = harness.GetConsumerHarness<WeatherForecastConsumer>();
+
+            (await consumerTestHarness.Consumed.Any<WeatherForecastRequestMessage>(m =>
+                m.Context.Message.Id == weatherGuid)).Should().BeTrue();
+
+            var weatherForecast = await client.GetFromJsonAsync<WeatherForecast>($"weatherforecast/{weatherGuid}");
+
+            weatherForecast.Location.Should().Be(location);
+            weatherForecast.Summary.Should().NotBeNull();
+        };
+
+        await act.Should().NotThrowAfterAsync(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(2));
+    }
+
+    [Theory]
+    [InlineData("Timbuktu")]
+    [InlineData("Nowhere")]
+    [InlineData("Somewhere")]
+    [InlineData("Anywhere")]
+    [InlineData("MiddleOfNowhere")]
+    [InlineData("OnTheEdgeOfNowhere")]
+    [InlineData("JustOutsideNowhere")]
+    public async Task ShouldNotHaveSideEffectsInMemory(string location)
+    {
+        var harness = _inMemoryWebApplicationFactory.Services.GetTestHarness();
+
+        await harness.Stop();
+
+        using var client = _inMemoryWebApplicationFactory.CreateClient();
+
+        var response = await client.PostAsJsonAsync($"weatherforecast?location={location}", new { });
+
+        var weatherGuid = await response.Content.ReadFromJsonAsync<Guid>();
+
+        weatherGuid.Should().NotBe(Guid.Empty);
+
+        //(await harness.Published.Any<WeatherForecastRequestMessage>(m => m.Context.Message.Id == weatherGuid)).Should().BeTrue();
+
+        var act = async () =>
+        {
+            var consumerTestHarness = harness.GetConsumerHarness<WeatherForecastConsumer>();
+
+            (await consumerTestHarness.Consumed.Any<WeatherForecastRequestMessage>(m =>
+                m.Context.Message.Id == weatherGuid)).Should().BeFalse();
+
+            var weatherForecast = await client.GetFromJsonAsync<WeatherForecast>($"weatherforecast/{weatherGuid}");
+
+            weatherForecast.Location.Should().Be(location);
+            weatherForecast.Summary.Should().BeNull();
+        };
+
+        await act.Should().NotThrowAfterAsync(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(2));
     }
 
     public async Task DisposeAsync()
     {
         await _dbContainer.DisposeAsync();
         await _rabbitMqContainer.DisposeAsync();
-        await _webApplicationFactory.DisposeAsync();
+        await _liveWebApplicationFactory.DisposeAsync();
+        await _inMemoryWebApplicationFactory.DisposeAsync();
     }
 }

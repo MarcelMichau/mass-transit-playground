@@ -5,6 +5,8 @@ using WeatherApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddApplicationInsightsTelemetry();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -29,8 +31,16 @@ builder.Services.AddMassTransit(configure =>
         o.UseBusOutbox();
     });
 
-    configure.UsingInMemory((context, cfg) =>
+    configure.AddConfigureEndpointsCallback((_, cfg) =>
     {
+        if (cfg is not IServiceBusReceiveEndpointConfigurator sb) return;
+        sb.ConfigureDeadLetterQueueDeadLetterTransport();
+        sb.ConfigureDeadLetterQueueErrorTransport();
+    });
+
+    configure.UsingAzureServiceBus((context, cfg) =>
+    {
+        cfg.Host(new Uri("sb://sb-marcel-michau-test.servicebus.windows.net"));
         cfg.ConfigureEndpoints(context);
     });
 });
@@ -53,6 +63,8 @@ app.MapPost("/weatherforecast",
         {
             var requestedDate = DateTime.Now;
 
+            var correlationId = NewId.NextGuid();
+
             var newForecast = new WeatherForecast
             {
                 Id = NewId.NextGuid(),
@@ -65,6 +77,7 @@ app.MapPost("/weatherforecast",
             await publishEndpoint.Publish(new WeatherForecastRequestMessage
             {
                 Id = newForecast.Id,
+                CorrelationId = correlationId,
                 Location = location,
                 RequestedDate = DateOnly.FromDateTime(requestedDate)
             });
