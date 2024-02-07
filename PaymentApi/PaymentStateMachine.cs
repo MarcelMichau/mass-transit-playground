@@ -38,6 +38,16 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                 .TransitionTo(Approved));
 
         During(AwaitingApproval,
+            When(PaymentApproved)
+                .If(context => context.Saga.PaymentAmount > 1000, requiresMoreApproval => requiresMoreApproval.Then(
+                    context =>
+                    {
+                        context.Saga.Decision = "First Line Approved";
+                        context.Saga.DecisionReason = context.Message.Reason;
+                    }))
+                .TransitionTo(AwaitingSecondLineApproval));
+
+        During(AwaitingApproval,
             When(PaymentRejected)
                 .Then(context =>
                 {
@@ -57,6 +67,7 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
     public Event<PaymentSubmitted> PaymentSubmitted { get; } = null!;
 
     public State AwaitingApproval { get; } = null!;
+    public State AwaitingSecondLineApproval { get; } = null!;
     public State Approved { get; } = null!;
     public State Rejected { get; } = null!;
     public State Completed { get; } = null!;

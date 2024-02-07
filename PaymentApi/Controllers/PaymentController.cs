@@ -41,7 +41,7 @@ public class PaymentController(
     }
 
     [HttpPost("approve", Name = "ApprovePayment")]
-    public async Task<IActionResult> ApprovePayment(Guid paymentId)
+    public async Task<IActionResult> ApprovePayment(Guid paymentId, string reason)
     {
         var payment = await context.Payments.FirstOrDefaultAsync(p => p.Id == paymentId);
 
@@ -52,12 +52,12 @@ public class PaymentController(
         {
             PaymentId = payment.Id,
             ApprovedOn = DateTime.Now,
-            Reason = "Payment approved as amount is less than 2000"
+            Reason = reason
         });
 
         await context.SaveChangesAsync();
 
-        logger.LogInformation("Payment approved: {PaymentId}", payment.Id);
+        logger.LogInformation("Payment approved: {PaymentId} with reason - {Reason}", payment.Id, reason);
 
         return Ok(payment);
     }
