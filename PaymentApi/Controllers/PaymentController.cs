@@ -12,15 +12,15 @@ public class PaymentController(
     ILogger<PaymentController> logger) : ControllerBase
 {
     [HttpPost(Name = "CreatePayment")]
-    public async Task<IActionResult> CreatePayment()
+    public async Task<IActionResult> CreatePayment(PaymentRequestModel paymentRequest)
     {
         var payment = new Payment
         {
             Id = NewId.NextGuid(),
             CreatedOn = DateTime.Now,
-            Amount = 1777m,
-            FromAccountNumber = "1234567890",
-            ToAccountNumber = "0987654321"
+            Amount = paymentRequest.Amount,
+            FromAccountNumber = paymentRequest.FromAccountNumber,
+            ToAccountNumber = paymentRequest.ToAccountNumber
         };
 
         context.Payments.Add(payment);

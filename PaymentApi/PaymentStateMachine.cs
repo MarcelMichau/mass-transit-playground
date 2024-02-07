@@ -36,13 +36,6 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                     context.Saga.DecisionReason = context.Message.Reason;
                 })
                 .TransitionTo(Approved));
-                //.Publish(context => new SubmitPayment
-                //{
-                //    Amount = context.Saga.PaymentAmount,
-                //    PaymentId = context.Saga.CorrelationId,
-                //    FromAccountNumber = context.Saga.PaymentFromAccount,
-                //    ToAccountNumber = context.Saga.PaymentToAccount
-                //}));
 
         During(AwaitingApproval,
             When(PaymentRejected)
