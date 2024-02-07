@@ -55,6 +55,8 @@ public class PaymentController(
             Reason = "Payment approved as amount is less than 2000"
         });
 
+        await context.SaveChangesAsync();
+
         logger.LogInformation("Payment approved: {PaymentId}", payment.Id);
 
         return Ok(payment);
