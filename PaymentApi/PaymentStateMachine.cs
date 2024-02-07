@@ -32,20 +32,22 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
             When(PaymentApproved)
                 .Then(context =>
                 {
-                    context.Saga.Decision = "Approved";
+                    context.Saga.Decision = context.Saga.PaymentAmount > 1000 ? "First Line Approved" : "Approved";
+                    context.Saga.DecisionReason = context.Message.Reason;
+                })
+                .IfElse(context => context.Saga.PaymentAmount > 1000, aboveSingleApprovalThreshold =>
+                        aboveSingleApprovalThreshold.TransitionTo(AwaitingSecondLineApproval),
+                    belowSingleApprovalThreshold =>
+                        belowSingleApprovalThreshold.TransitionTo(Approved)));
+
+        During(AwaitingSecondLineApproval,
+            When(PaymentApproved)
+                .Then(context =>
+                {
+                    context.Saga.Decision = "Second Line Approved";
                     context.Saga.DecisionReason = context.Message.Reason;
                 })
                 .TransitionTo(Approved));
-
-        During(AwaitingApproval,
-            When(PaymentApproved)
-                .If(context => context.Saga.PaymentAmount > 1000, requiresMoreApproval => requiresMoreApproval.Then(
-                    context =>
-                    {
-                        context.Saga.Decision = "First Line Approved";
-                        context.Saga.DecisionReason = context.Message.Reason;
-                    }))
-                .TransitionTo(AwaitingSecondLineApproval));
 
         During(AwaitingApproval,
             When(PaymentRejected)
