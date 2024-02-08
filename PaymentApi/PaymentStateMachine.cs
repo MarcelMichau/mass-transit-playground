@@ -22,7 +22,7 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                     context.Saga.PaymentToAccount = context.Message.ToAccountNumber;
                 })
                 .TransitionTo(AwaitingApproval)
-                .Publish(context => new SendPaymentApprovalNotification
+                .Send(context => new SendPaymentApprovalNotification
                 {
                     Amount = context.Saga.PaymentAmount,
                     PaymentId = context.Saga.CorrelationId
@@ -38,7 +38,15 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                 .IfElse(context => context.Saga.PaymentAmount > 1000, aboveSingleApprovalThreshold =>
                         aboveSingleApprovalThreshold.TransitionTo(AwaitingSecondLineApproval),
                     belowSingleApprovalThreshold =>
-                        belowSingleApprovalThreshold.TransitionTo(Approved)));
+                        belowSingleApprovalThreshold.TransitionTo(Approved)
+                            .Send(context => new SubmitPayment
+                            {
+                                DecisionReason = context.Saga.DecisionReason,
+                                Amount = context.Saga.PaymentAmount,
+                                PaymentId = context.Saga.CorrelationId,
+                                FromAccountNumber = context.Saga.PaymentFromAccount,
+                                ToAccountNumber = context.Saga.PaymentToAccount
+                            })));
 
         During(AwaitingSecondLineApproval,
             When(PaymentApproved)
@@ -47,7 +55,15 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                     context.Saga.Decision = "Second Line Approved";
                     context.Saga.DecisionReason = context.Message.Reason;
                 })
-                .TransitionTo(Approved));
+                .TransitionTo(Approved)
+                .Send(context => new SubmitPayment
+                {
+                    DecisionReason = context.Saga.DecisionReason,
+                    Amount = context.Saga.PaymentAmount,
+                    PaymentId = context.Saga.CorrelationId,
+                    FromAccountNumber = context.Saga.PaymentFromAccount,
+                    ToAccountNumber = context.Saga.PaymentToAccount
+                }));
 
         During(AwaitingApproval,
             When(PaymentRejected)
