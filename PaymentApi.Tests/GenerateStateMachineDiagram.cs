@@ -1,7 +1,6 @@
 using MassTransit.SagaStateMachine;
 using MassTransit.Visualizer;
 using PaymentApi.StateMachine;
-using QuikGraph;
 
 namespace PaymentApi.Tests;
 
@@ -16,6 +15,8 @@ public class GenerateStateMachineDiagram
 
         var generator = new StateMachineGraphvizGenerator(graph);
 
-        string dots = generator.CreateDotFile();
+        var dots = generator.CreateDotFile();
+
+        File.WriteAllText("payment-state-machine.dot", dots);
     }
 }

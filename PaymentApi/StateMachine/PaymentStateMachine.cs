@@ -25,7 +25,7 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                     context.Saga.PaymentToAccount = context.Message.ToAccountNumber;
                 })
                 .TransitionTo(AwaitingApproval)
-                .Send(context => new SendPaymentApprovalNotification
+                .Publish(context => new SendPaymentApprovalNotification
                 {
                     Amount = context.Saga.PaymentAmount,
                     PaymentId = context.Saga.CorrelationId
@@ -42,7 +42,7 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                         aboveSingleApprovalThreshold.TransitionTo(AwaitingSecondLineApproval),
                     belowSingleApprovalThreshold =>
                         belowSingleApprovalThreshold.TransitionTo(Approved)
-                            .Send(context => new SubmitPayment
+                            .Publish(context => new SubmitPayment
                             {
                                 DecisionReason = context.Saga.DecisionReason,
                                 Amount = context.Saga.PaymentAmount,
@@ -59,7 +59,7 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                     context.Saga.DecisionReason = context.Message.Reason;
                 })
                 .TransitionTo(Approved)
-                .Send(context => new SubmitPayment
+                .Publish(context => new SubmitPayment
                 {
                     DecisionReason = context.Saga.DecisionReason,
                     Amount = context.Saga.PaymentAmount,
