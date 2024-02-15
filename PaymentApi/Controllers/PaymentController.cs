@@ -60,7 +60,7 @@ public class PaymentController(
 
         await context.SaveChangesAsync();
 
-        logger.LogInformation("Payment approved: {PaymentId} with reason - {Reason}", payment.Id, reason);
+        logger.LogInformation("Payment approved: {PaymentId} with reason - {Reason}", payment.Id, reason.Replace(Environment.NewLine, ""));
 
         return Ok(payment);
     }
