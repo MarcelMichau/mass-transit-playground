@@ -1,6 +1,32 @@
-@PaymentApi_HostAddress = http://localhost:5064
+@PaymentApi_HostAddress = https://localhost:7148
 
-GET {{PaymentApi_HostAddress}}/weatherforecast/
+POST {{PaymentApi_HostAddress}}/payment/
 Accept: application/json
+Content-Type: application/json
+
+{
+  "amount": 500,
+  "fromAccountNumber": "3872758236",
+  "toAccountNumber": "2384785623"
+}
 
 ###
+
+POST {{PaymentApi_HostAddress}}/payment/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "amount": 1500,
+  "fromAccountNumber": "3872758236",
+  "toAccountNumber": "2384785623"
+}
+
+###
+
+
+@paymentId=50200000-2708-7478-e645-08dc2e20218a
+@reason=Lekker
+
+POST {{PaymentApi_HostAddress}}/payment/approve?paymentId={{paymentId}}&reason={{reason}}
+Accept: application/json

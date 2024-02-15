@@ -86,16 +86,16 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                 .TransitionTo(Completed));
     }
 
-    public Event<PaymentCreated> PaymentCreated { get; } = null!;
-    public Event<PaymentApproved> PaymentApproved { get; } = null!;
-    public Event<PaymentRejected> PaymentRejected { get; } = null!;
-    public Event<PaymentSubmitted> PaymentSubmitted { get; } = null!;
-    public Event<PaymentProcessed> PaymentProcessed{ get; } = null!;
+    public Event<PaymentCreated> PaymentCreated { get; init; } = null!;
+    public Event<PaymentApproved> PaymentApproved { get; init; } = null!;
+    public Event<PaymentRejected> PaymentRejected { get; init; } = null!;
+    public Event<PaymentSubmitted> PaymentSubmitted { get; init; } = null!;
+    public Event<PaymentProcessed> PaymentProcessed{ get; init; } = null!;
 
-    public State AwaitingApproval { get; } = null!;
-    public State AwaitingSecondLineApproval { get; } = null!;
-    public State Approved { get; } = null!;
-    public State Rejected { get; } = null!;
-    public State AwaitingProcessingConfirmation { get; } = null!;
-    public State Completed { get; } = null!;
+    public State AwaitingApproval { get; init; } = null!;
+    public State AwaitingSecondLineApproval { get; init; } = null!;
+    public State Approved { get; init; } = null!;
+    public State Rejected { get; init; } = null!;
+    public State AwaitingProcessingConfirmation { get; init; } = null!;
+    public State Completed { get; init; } = null!;
 }
