@@ -1,6 +1,8 @@
 ﻿using MassTransit;
+using PaymentApi.Events;
+using PaymentApi.Messages;
 
-namespace PaymentApi;
+namespace PaymentApi.StateMachine;
 
 public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
 {
@@ -12,6 +14,7 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
         Event(() => PaymentApproved, x => x.CorrelateById(m => m.Message.PaymentId));
         Event(() => PaymentRejected, x => x.CorrelateById(m => m.Message.PaymentId));
         Event(() => PaymentSubmitted, x => x.CorrelateById(m => m.Message.PaymentId));
+        Event(() => PaymentProcessed, x => x.CorrelateById(m => m.Message.PaymentId));
 
         Initially(
             When(PaymentCreated)
@@ -76,6 +79,10 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
 
         During(Approved,
             When(PaymentSubmitted)
+                .TransitionTo(AwaitingProcessingConfirmation));
+
+        During(AwaitingProcessingConfirmation,
+            When(PaymentProcessed)
                 .TransitionTo(Completed));
     }
 
@@ -83,10 +90,12 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
     public Event<PaymentApproved> PaymentApproved { get; } = null!;
     public Event<PaymentRejected> PaymentRejected { get; } = null!;
     public Event<PaymentSubmitted> PaymentSubmitted { get; } = null!;
+    public Event<PaymentProcessed> PaymentProcessed{ get; } = null!;
 
     public State AwaitingApproval { get; } = null!;
     public State AwaitingSecondLineApproval { get; } = null!;
     public State Approved { get; } = null!;
     public State Rejected { get; } = null!;
+    public State AwaitingProcessingConfirmation { get; } = null!;
     public State Completed { get; } = null!;
 }

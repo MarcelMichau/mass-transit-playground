@@ -1,6 +1,8 @@
 ﻿using MassTransit;
+using PaymentApi.Events;
+using PaymentApi.Messages;
 
-namespace PaymentApi;
+namespace PaymentApi.Consumers;
 
 public class SubmitPaymentConsumer(IPublishEndpoint publishEndpoint, ILogger<SubmitPaymentConsumer> logger) : IConsumer<SubmitPayment>
 {
@@ -9,6 +11,6 @@ public class SubmitPaymentConsumer(IPublishEndpoint publishEndpoint, ILogger<Sub
         logger.LogInformation("Submitting payment: {PaymentId} - approved with reason: {ApprovalReason}", context.Message.PaymentId, context.Message.DecisionReason);
 
         await publishEndpoint.Publish(new PaymentSubmitted
-            { PaymentId = context.Message.PaymentId, SubmittedOn = DateTime.Now, Reference = "Payment is successful, yay!" });
+        { PaymentId = context.Message.PaymentId, SubmittedOn = DateTime.Now, Reference = "Payment is successful, yay!" });
     }
 }

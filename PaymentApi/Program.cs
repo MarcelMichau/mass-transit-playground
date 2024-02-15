@@ -2,12 +2,15 @@ using System.Reflection;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using PaymentApi;
+using PaymentApi.StateMachine;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddHostedService<PaymentProviderPollingWorker>();
 
 builder.Services.AddDbContext<PaymentDbContext>(optionsBuilder =>
 {

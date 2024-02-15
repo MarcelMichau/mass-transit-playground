@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 
-namespace PaymentApi;
+namespace PaymentApi.StateMachine;
 
 public class PaymentStateMap : SagaClassMap<PaymentState>
 {

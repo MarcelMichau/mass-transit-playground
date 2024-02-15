@@ -1,4 +1,4 @@
-﻿namespace PaymentApi;
+﻿namespace PaymentApi.Events;
 
 public record PaymentRejected
 {

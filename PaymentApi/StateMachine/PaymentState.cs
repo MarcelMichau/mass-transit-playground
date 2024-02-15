@@ -1,6 +1,6 @@
 ﻿using MassTransit;
 
-namespace PaymentApi;
+namespace PaymentApi.StateMachine;
 
 public class PaymentState : SagaStateMachineInstance
 {

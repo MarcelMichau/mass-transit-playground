@@ -1,10 +1,10 @@
-﻿namespace PaymentApi;
+﻿namespace PaymentApi.Events;
 
-public record SubmitPayment
+public record PaymentCreated
 {
     public Guid PaymentId { get; init; }
+    public DateTime CreatedOn { get; init; }
     public decimal Amount { get; init; }
     public string FromAccountNumber { get; init; }
     public string ToAccountNumber { get; init; }
-    public string DecisionReason { get; init; }
 }

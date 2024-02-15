@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PaymentApi.Events;
 
 namespace PaymentApi.Controllers;
 
@@ -61,4 +62,11 @@ public class PaymentController(
 
         return Ok(payment);
     }
+}
+
+public class PaymentRequestModel
+{
+    public decimal Amount { get; init; }
+    public string FromAccountNumber { get; init; }
+    public string ToAccountNumber { get; init; }
 }

@@ -1,4 +1,4 @@
-﻿namespace PaymentApi;
+﻿namespace PaymentApi.Messages;
 
 public record SendPaymentApprovalNotification
 {

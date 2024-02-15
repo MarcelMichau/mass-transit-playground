@@ -1,6 +1,7 @@
 ﻿using MassTransit;
+using PaymentApi.Messages;
 
-namespace PaymentApi;
+namespace PaymentApi.Consumers;
 
 public class SendPaymentApprovalNotificationConsumer(ILogger<SendPaymentApprovalNotificationConsumer> logger)
     : IConsumer<SendPaymentApprovalNotification>
