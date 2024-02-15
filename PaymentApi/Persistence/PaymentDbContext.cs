@@ -1,9 +1,10 @@
 ﻿using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
+using PaymentApi.Domain;
 using PaymentApi.StateMachine;
 
-namespace PaymentApi;
+namespace PaymentApi.Persistence;
 
 public class PaymentDbContext(DbContextOptions<PaymentDbContext> options) : SagaDbContext(options)
 {

@@ -1,7 +1,8 @@
 ﻿using MassTransit;
 using PaymentApi.Events;
+using PaymentApi.Persistence;
 
-namespace PaymentApi;
+namespace PaymentApi.Workers;
 
 public class PaymentProviderPollingWorker(IServiceScopeFactory serviceScopeFactory, ILogger<PaymentProviderPollingWorker> logger)
     : BackgroundService

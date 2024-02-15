@@ -1,8 +1,9 @@
 using System.Reflection;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using PaymentApi;
+using PaymentApi.Persistence;
 using PaymentApi.StateMachine;
+using PaymentApi.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 

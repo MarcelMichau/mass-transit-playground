@@ -1,7 +1,9 @@
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PaymentApi.Domain;
 using PaymentApi.Events;
+using PaymentApi.Persistence;
 
 namespace PaymentApi.Controllers;
 
