@@ -1,6 +1,5 @@
 ﻿using MassTransit;
 using PaymentApi.Messages;
-using IServiceBusBusFactoryConfigurator = MassTransit.IServiceBusBusFactoryConfigurator;
 
 namespace PaymentApi.Consumers;
 
@@ -26,16 +25,6 @@ public class ThirdPartyMessageConsumerDefinition : ConsumerDefinition<ThirdParty
     {
         endpointConfigurator.ConfigureConsumeTopology = false;
         endpointConfigurator.UseRawJsonDeserializer();
-
-        //if (endpointConfigurator is IServiceBusReceiveEndpointConfigurator serviceBus)
-        //{
-        //    serviceBus.ConfigureReceive(cb =>
-        //    {
-                
-        //    });
-        //}
-
-        base.ConfigureConsumer(endpointConfigurator, consumerConfigurator, context);
     }
 }
 

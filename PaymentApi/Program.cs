@@ -59,20 +59,21 @@ builder.Services.AddMassTransit(configure =>
 
     configure.UsingAzureServiceBus((context, cfg) =>
     {
-        cfg.Host(new Uri("sb://someservicebus.servicebus.windows.net"));
+        cfg.Host(new Uri(builder.Configuration.GetValue<string>("AZURE_SERVICE_BUS_NAMESPACE")));
         cfg.UseServiceBusMessageScheduler();
         cfg.ConfigureEndpoints(context);
     });
 
-    configure.AddRider(rider =>
-    {
-        rider.UsingEventHub((context, cfg) =>
-        {
-            cfg.Host("someeventhub.servicebus.windows.net", new DefaultAzureCredential());
+    // Uncomment below when using Azure Event Hub transport
+    //configure.AddRider(rider =>
+    //{
+    //    rider.UsingEventHub((context, cfg) =>
+    //    {
+    //        cfg.Host(builder.Configuration.GetValue<string>("AZURE_EVENT_HUB_NAMESPACE"), new DefaultAzureCredential());
 
-            cfg.Storage(new Uri("https://somestorageaccount.blob.core.windows.net/masstransit"), new DefaultAzureCredential());
-        });
-    });
+    //        cfg.Storage(new Uri(builder.Configuration.GetValue<string>("AZURE_STORAGE_ACCOUNT_CONTAINER_URI")), new DefaultAzureCredential());
+    //    });
+    //});
 });
 
 var app = builder.Build();
