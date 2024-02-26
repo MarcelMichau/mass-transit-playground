@@ -12,15 +12,18 @@ namespace PaymentApi.Controllers;
 public class PaymentController(
     PaymentDbContext context,
     IPublishEndpoint publishEndpoint,
+    IEventHubProducerProvider producerProvider,
     ILogger<PaymentController> logger) : ControllerBase
 {
     [HttpPost(Name = "CreatePayment")]
     public async Task<IActionResult> CreatePayment(PaymentRequestModel paymentRequest)
     {
+        var creationTimestamp = DateTime.Now;
+
         var payment = new Payment
         {
             Id = NewId.NextGuid(),
-            CreatedOn = DateTime.Now,
+            CreatedOn = creationTimestamp,
             Amount = paymentRequest.Amount,
             FromAccountNumber = paymentRequest.FromAccountNumber,
             ToAccountNumber = paymentRequest.ToAccountNumber
@@ -28,15 +31,21 @@ public class PaymentController(
 
         context.Payments.Add(payment);
 
-        await publishEndpoint.Publish(new PaymentCreated
+        var paymentCreatedEvent = new PaymentCreated
         {
             PaymentId = payment.Id,
+            CreatedOn = creationTimestamp,
             Amount = payment.Amount,
             FromAccountNumber = payment.FromAccountNumber,
             ToAccountNumber = payment.ToAccountNumber
-        });
+        };
+
+        await publishEndpoint.Publish(paymentCreatedEvent);
 
         await context.SaveChangesAsync();
+
+        var producer = await producerProvider.GetProducer("eh-masstransit-test");
+        await producer.Produce(paymentCreatedEvent);
 
         logger.LogInformation("Payment created: {PaymentId}", payment.Id);
 

@@ -79,7 +79,11 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
 
         During(Approved,
             When(PaymentSubmitted)
-                .TransitionTo(AwaitingProcessingConfirmation));
+                .TransitionTo(AwaitingProcessingConfirmation)
+                .Publish(context => new CheckPaymentStatus
+                {
+                    PaymentId = context.Message.PaymentId
+                }));
 
         During(AwaitingProcessingConfirmation,
             When(PaymentProcessed)
