@@ -12,7 +12,8 @@ namespace PaymentApi.Controllers;
 public class PaymentController(
     PaymentDbContext context,
     IPublishEndpoint publishEndpoint,
-    IEventHubProducerProvider producerProvider,
+    //Uncomment when testing Event Hub
+    //IEventHubProducerProvider producerProvider,
     ILogger<PaymentController> logger) : ControllerBase
 {
     [HttpPost(Name = "CreatePayment")]
@@ -44,8 +45,9 @@ public class PaymentController(
 
         await context.SaveChangesAsync();
 
-        var producer = await producerProvider.GetProducer("eh-masstransit-test");
-        await producer.Produce(paymentCreatedEvent);
+        //Uncomment when testing Event Hub
+        //var producer = await producerProvider.GetProducer("eh-masstransit-test");
+        //await producer.Produce(paymentCreatedEvent);
 
         logger.LogInformation("Payment created: {PaymentId}", payment.Id);
 
