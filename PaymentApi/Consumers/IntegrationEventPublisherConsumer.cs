@@ -22,7 +22,7 @@ public class IntegrationEventPublisherConsumer(ILogger<IntegrationEventPublisher
 
     public async Task Consume(ConsumeContext<PaymentRejected> context)
     {
-        logger.LogInformation("I am publishing an integration event for PaymentApproved - Payment ID: {PaymentId}", context.Message.PaymentId);
+        logger.LogInformation("I am publishing an integration event for PaymentRejected - Payment ID: {PaymentId}", context.Message.PaymentId);
     }
 
     public async Task Consume(ConsumeContext<PaymentSubmitted> context)
