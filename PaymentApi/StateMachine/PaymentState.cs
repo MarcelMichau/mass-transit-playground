@@ -12,6 +12,12 @@ public class PaymentState : SagaStateMachineInstance
 
     public string? Decision { get; set; }
     public string? DecisionReason { get; set; }
+    
+    // Added to track payment creation time for expiration
+    public DateTime CreatedOn { get; set; }
+
+    // To store scheduler token for timeout
+    public Guid? ExpirationTokenId { get; set; }
 
     public string CurrentState { get; set; } = null!;
 }

@@ -16,6 +16,13 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
         Event(() => PaymentSubmitted, x => x.CorrelateById(m => m.Message.PaymentId));
         Event(() => PaymentProcessed, x => x.CorrelateById(m => m.Message.PaymentId));
 
+        // Define the schedule for payment expiration
+        Schedule(() => PaymentExpirationSchedule, x => x.ExpirationTokenId, s =>
+        {
+            s.Delay = TimeSpan.FromMinutes(5);
+            s.Received = x => x.CorrelateById(context => context.Message.PaymentId);
+        });
+
         Initially(
             When(PaymentCreated)
                 .Then(context =>
@@ -23,7 +30,11 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                     context.Saga.PaymentAmount = context.Message.Amount;
                     context.Saga.PaymentFromAccount = context.Message.FromAccountNumber;
                     context.Saga.PaymentToAccount = context.Message.ToAccountNumber;
+                    context.Saga.CreatedOn = context.Message.CreatedOn;
                 })
+                .Schedule(PaymentExpirationSchedule, 
+                    context => new PaymentExpirationRequested { PaymentId = context.Saga.CorrelationId },
+                    context => context.Message.ExpirationTime)
                 .TransitionTo(AwaitingApproval)
                 .Publish(context => new SendPaymentApprovalNotification
                 {
@@ -31,8 +42,39 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                     PaymentId = context.Saga.CorrelationId
                 }));
 
+        // Add handlers for payment expiration in each relevant state
+        During(AwaitingApproval,
+            When(PaymentExpirationSchedule.Received)
+                .Then(context =>
+                {
+                    context.Saga.Decision = "Expired";
+                    context.Saga.DecisionReason = "Payment expired after 5 minutes";
+                })
+                .TransitionTo(Expired)
+                .Publish(context => new PaymentExpired
+                {
+                    PaymentId = context.Saga.CorrelationId,
+                    ExpiredOn = DateTime.UtcNow
+                }));
+
+        During(AwaitingSecondLineApproval,
+            When(PaymentExpirationSchedule.Received)
+                .Then(context =>
+                {
+                    context.Saga.Decision = "Expired";
+                    context.Saga.DecisionReason = "Payment expired after 5 minutes";
+                })
+                .TransitionTo(Expired)
+                .Publish(context => new PaymentExpired
+                {
+                    PaymentId = context.Saga.CorrelationId,
+                    ExpiredOn = DateTime.UtcNow
+                }));
+
+        // Existing behavior for AwaitingApproval
         During(AwaitingApproval,
             When(PaymentApproved)
+                .Unschedule(PaymentExpirationSchedule)
                 .Then(context =>
                 {
                     context.Saga.Decision = context.Saga.PaymentAmount > 1000 ? "First Line Approved" : "Approved";
@@ -53,6 +95,7 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
 
         During(AwaitingSecondLineApproval,
             When(PaymentApproved)
+                .Unschedule(PaymentExpirationSchedule)
                 .Then(context =>
                 {
                     context.Saga.Decision = "Second Line Approved";
@@ -70,6 +113,7 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
 
         During(AwaitingApproval,
             When(PaymentRejected)
+                .Unschedule(PaymentExpirationSchedule)
                 .Then(context =>
                 {
                     context.Saga.Decision = "Rejected";
@@ -94,7 +138,10 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
     public Event<PaymentApproved> PaymentApproved { get; init; } = null!;
     public Event<PaymentRejected> PaymentRejected { get; init; } = null!;
     public Event<PaymentSubmitted> PaymentSubmitted { get; init; } = null!;
-    public Event<PaymentProcessed> PaymentProcessed{ get; init; } = null!;
+    public Event<PaymentProcessed> PaymentProcessed { get; init; } = null!;
+    //public Event<PaymentExpirationRequested> PaymentExpirationRequested { get; init; } = null!;
+
+    public Schedule<PaymentState, PaymentExpirationRequested> PaymentExpirationSchedule { get; init; } = null!;
 
     public State AwaitingApproval { get; init; } = null!;
     public State AwaitingSecondLineApproval { get; init; } = null!;
@@ -102,4 +149,5 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
     public State Rejected { get; init; } = null!;
     public State AwaitingProcessingConfirmation { get; init; } = null!;
     public State Completed { get; init; } = null!;
+    public State Expired { get; init; } = null!;
 }

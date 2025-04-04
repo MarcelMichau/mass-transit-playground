@@ -41,28 +41,31 @@ builder.Services.AddMassTransit(configure =>
 
     // Uncomment below when testing locally with in-memory transport
 
-    //configure.UsingInMemory((context, cfg) =>
-    //{
-    //    cfg.ConfigureEndpoints(context);
-    //});
+    configure.AddDelayedMessageScheduler();
+
+    configure.UsingInMemory((context, cfg) =>
+    {
+        cfg.UseDelayedMessageScheduler();
+        cfg.ConfigureEndpoints(context);
+    });
 
     // Uncomment below when testing locally with Azure Service Bus transport
 
-    configure.AddServiceBusMessageScheduler();
+    //configure.AddServiceBusMessageScheduler();
 
-    configure.AddConfigureEndpointsCallback((_, cfg) =>
-    {
-        if (cfg is not IServiceBusReceiveEndpointConfigurator sb) return;
-        sb.ConfigureDeadLetterQueueDeadLetterTransport();
-        sb.ConfigureDeadLetterQueueErrorTransport();
-    });
+    //configure.AddConfigureEndpointsCallback((_, cfg) =>
+    //{
+    //    if (cfg is not IServiceBusReceiveEndpointConfigurator sb) return;
+    //    sb.ConfigureDeadLetterQueueDeadLetterTransport();
+    //    sb.ConfigureDeadLetterQueueErrorTransport();
+    //});
 
-    configure.UsingAzureServiceBus((context, cfg) =>
-    {
-        cfg.Host(new Uri(builder.Configuration.GetValue<string>("AZURE_SERVICE_BUS_NAMESPACE")));
-        cfg.UseServiceBusMessageScheduler();
-        cfg.ConfigureEndpoints(context);
-    });
+    //configure.UsingAzureServiceBus((context, cfg) =>
+    //{
+    //    cfg.Host(new Uri(builder.Configuration.GetValue<string>("AZURE_SERVICE_BUS_NAMESPACE")));
+    //    cfg.UseServiceBusMessageScheduler();
+    //    cfg.ConfigureEndpoints(context);
+    //});
 
     // Uncomment below when using Azure Event Hub transport
     //configure.AddRider(rider =>

@@ -38,7 +38,8 @@ public class PaymentController(
             CreatedOn = creationTimestamp,
             Amount = payment.Amount,
             FromAccountNumber = payment.FromAccountNumber,
-            ToAccountNumber = payment.ToAccountNumber
+            ToAccountNumber = payment.ToAccountNumber,
+            ExpirationTime = paymentRequest.ExpirationTime
         };
 
         await publishEndpoint.Publish(paymentCreatedEvent);
@@ -82,4 +83,5 @@ public class PaymentRequestModel
     public decimal Amount { get; init; }
     public string FromAccountNumber { get; init; }
     public string ToAccountNumber { get; init; }
+    public TimeSpan ExpirationTime { get; init; }
 }
