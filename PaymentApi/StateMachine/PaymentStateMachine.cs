@@ -139,7 +139,6 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
     public Event<PaymentRejected> PaymentRejected { get; init; } = null!;
     public Event<PaymentSubmitted> PaymentSubmitted { get; init; } = null!;
     public Event<PaymentProcessed> PaymentProcessed { get; init; } = null!;
-    //public Event<PaymentExpirationRequested> PaymentExpirationRequested { get; init; } = null!;
 
     public Schedule<PaymentState, PaymentExpirationRequested> PaymentExpirationSchedule { get; init; } = null!;
 
