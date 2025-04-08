@@ -32,9 +32,16 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                     context.Saga.PaymentToAccount = context.Message.ToAccountNumber;
                     context.Saga.CreatedOn = context.Message.CreatedOn;
                 })
-                .Schedule(PaymentExpirationSchedule, 
-                    context => new PaymentExpirationRequested { PaymentId = context.Saga.CorrelationId },
-                    context => context.Message.ExpirationTime)
+                .IfElse(context => context.Message.ExpirationTime != DateTimeOffset.MaxValue,
+                    // Schedule expiration only if ExpirationTime is not MaxValue
+                    hasExpiration => hasExpiration
+                        .Schedule(PaymentExpirationSchedule, 
+                            context => new PaymentExpirationRequested { PaymentId = context.Saga.CorrelationId },
+                            context => context.Message.ExpirationTime.LocalDateTime),
+                    
+                    // Skip scheduling if ExpirationTime is MaxValue
+                    noExpiration => noExpiration
+                )
                 .TransitionTo(AwaitingApproval)
                 .Publish(context => new SendPaymentApprovalNotification
                 {

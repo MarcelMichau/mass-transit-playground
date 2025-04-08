@@ -7,5 +7,5 @@ public record PaymentCreated
     public decimal Amount { get; init; }
     public string FromAccountNumber { get; init; }
     public string ToAccountNumber { get; init; }
-    public TimeSpan ExpirationTime { get; init; }
+    public DateTimeOffset ExpirationTime { get; init; }
 }
