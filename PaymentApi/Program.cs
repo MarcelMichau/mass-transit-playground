@@ -1,12 +1,12 @@
 using System.Reflection;
-using Azure.Identity;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using PaymentApi.Persistence;
 using PaymentApi.StateMachine;
-using PaymentApi.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddServiceDefaults();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -16,7 +16,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<PaymentDbContext>(optionsBuilder =>
 {
-    optionsBuilder.UseSqlServer(builder.Configuration.GetConnectionString(nameof(PaymentDbContext)));
+    optionsBuilder.UseSqlServer(builder.Configuration.GetConnectionString("database"));
 });
 
 builder.Services.AddMassTransit(configure =>
@@ -62,7 +62,15 @@ builder.Services.AddMassTransit(configure =>
 
     configure.UsingAzureServiceBus((context, cfg) =>
     {
-        cfg.Host(builder.Configuration.GetConnectionString("ServiceBusConnection"));
+        var connectionString = builder.Configuration.GetConnectionString("messaging");
+
+        if (connectionString != null && connectionString.StartsWith("https", StringComparison.InvariantCultureIgnoreCase))
+        {
+            connectionString = connectionString.Replace("https://", "sb://").Replace(":443/", "/");
+        }
+
+        cfg.Host(new Uri(connectionString!));
+
         cfg.UseServiceBusMessageScheduler();
         cfg.ConfigureEndpoints(context);
     });
@@ -81,6 +89,8 @@ builder.Services.AddMassTransit(configure =>
 
 var app = builder.Build();
 
+app.MapDefaultEndpoints();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -92,5 +102,11 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
+    await db.Database.MigrateAsync();
+}
 
 app.Run();

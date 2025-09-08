@@ -1,6 +1,7 @@
 ﻿using MassTransit;
 using PaymentApi.Events;
 using PaymentApi.Messages;
+using PaymentApi.Persistence;
 
 namespace PaymentApi.StateMachine;
 
@@ -32,14 +33,14 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
                     context.Saga.PaymentToAccount = context.Message.ToAccountNumber;
                     context.Saga.CreatedOn = context.Message.CreatedOn;
                 })
-                .IfElse(context => context.Message.ExpirationTime != DateTimeOffset.MaxValue,
-                    // Schedule expiration only if ExpirationTime is not MaxValue
+                .IfElse(context => context.Message.ExpirationTime != DateTimeOffset.MinValue,
+                    // Schedule expiration only if ExpirationTime is not MinValue
                     hasExpiration => hasExpiration
                         .Schedule(PaymentExpirationSchedule, 
                             context => new PaymentExpirationRequested { PaymentId = context.Saga.CorrelationId },
                             context => context.Message.ExpirationTime.LocalDateTime),
-                    
-                    // Skip scheduling if ExpirationTime is MaxValue
+
+                    // Skip scheduling if ExpirationTime is MinValue
                     noExpiration => noExpiration
                 )
                 .TransitionTo(AwaitingApproval)
@@ -156,4 +157,13 @@ public class PaymentStateMachine : MassTransitStateMachine<PaymentState>
     public State AwaitingProcessingConfirmation { get; init; } = null!;
     public State Completed { get; init; } = null!;
     public State Expired { get; init; } = null!;
+}
+
+public class PaymentStateMachineDefinition : SagaDefinition<PaymentState>
+{
+    protected override void ConfigureSaga(IReceiveEndpointConfigurator endpointConfigurator, ISagaConfigurator<PaymentState> sagaConfigurator, IRegistrationContext context)
+    {
+        endpointConfigurator.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+        endpointConfigurator.UseEntityFrameworkOutbox<PaymentDbContext>(context);
+    }
 }

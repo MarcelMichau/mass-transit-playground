@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaymentApi", "PaymentApi\Pa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentApi.Tests", "PaymentApi.Tests\PaymentApi.Tests.csproj", "{938A579F-C600-4B6F-BBA6-A08A90406CFF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransitPlayground.AppHost", "MassTransitPlayground.AppHost\MassTransitPlayground.AppHost.csproj", "{E4C6179A-4609-4EA5-B7B2-3479679A770D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransitPlayground.ServiceDefaults", "MassTransitPlayground.ServiceDefaults\MassTransitPlayground.ServiceDefaults.csproj", "{0274983B-534A-55B2-40AD-38CB38724143}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{938A579F-C600-4B6F-BBA6-A08A90406CFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{938A579F-C600-4B6F-BBA6-A08A90406CFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{938A579F-C600-4B6F-BBA6-A08A90406CFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4C6179A-4609-4EA5-B7B2-3479679A770D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4C6179A-4609-4EA5-B7B2-3479679A770D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4C6179A-4609-4EA5-B7B2-3479679A770D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4C6179A-4609-4EA5-B7B2-3479679A770D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0274983B-534A-55B2-40AD-38CB38724143}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0274983B-534A-55B2-40AD-38CB38724143}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0274983B-534A-55B2-40AD-38CB38724143}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0274983B-534A-55B2-40AD-38CB38724143}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
