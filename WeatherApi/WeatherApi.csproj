@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.4" />
-    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.3" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.4" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
