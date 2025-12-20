@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>1c9db170-bab0-4df8-979c-f432957fb771</UserSecretsId>
@@ -9,22 +9,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.2" />
-	  <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.2" />
-	  <PackageReference Include="MassTransit.EventHub" Version="8.5.2" />
-	  <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.2" />
-	  <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
+	  <PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.7" />
+	  <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.7" />
+	  <PackageReference Include="MassTransit.EventHub" Version="8.5.7" />
+	  <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.7" />
+	  <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.1">
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.1" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
 	  	<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
-	  <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
   </ItemGroup>
 
   <ItemGroup>
