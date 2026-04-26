@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "MassTransitPlayground.AppHost/MassTransitPlayground.AppHost.csproj"
+  }
+}
