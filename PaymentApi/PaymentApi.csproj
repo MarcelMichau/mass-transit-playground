@@ -9,10 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="9.2.1" />
-	  <PackageReference Include="MassTransit.EntityFrameworkCore" Version="9.2.1" />
-	  <PackageReference Include="MassTransit.EventHub" Version="9.2.1" />
-	  <PackageReference Include="MassTransit.RabbitMQ" Version="9.2.1" />
+	  <PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="9.2.2" />
+	  <PackageReference Include="MassTransit.EntityFrameworkCore" Version="9.2.2" />
+	  <PackageReference Include="MassTransit.EventHub" Version="9.2.2" />
+	  <PackageReference Include="MassTransit.RabbitMQ" Version="9.2.2" />
 	  <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
 	    <PrivateAssets>all</PrivateAssets>
