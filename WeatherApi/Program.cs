@@ -86,8 +86,7 @@ app.MapPost("/weatherforecast",
 
             return Results.Accepted(value: newForecast.Id.ToString());
         })
-    .WithName("GenerateWeatherForecast")
-    .WithOpenApi();
+    .WithName("GenerateWeatherForecast");
 
 app.MapGet("/weatherforecast/{id:guid}",
         async (Guid id, WeatherDbContext context) =>
@@ -96,8 +95,7 @@ app.MapGet("/weatherforecast/{id:guid}",
 
             return forecast is null ? Results.NotFound() : Results.Ok(forecast);
         })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
+    .WithName("GetWeatherForecast");
 
 app.Run();
 
