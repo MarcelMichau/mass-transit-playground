@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using TestApi;
 using WeatherApi;
 
 #nullable disable
@@ -18,7 +17,7 @@ namespace TestApi.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -64,8 +63,6 @@ namespace TestApi.Migrations
                         .HasColumnType("rowversion");
 
                     b.HasKey("Id");
-
-                    b.HasAlternateKey("MessageId", "ConsumerId");
 
                     b.HasIndex("Delivered");
 
@@ -150,10 +147,6 @@ namespace TestApi.Migrations
 
                     b.HasKey("SequenceNumber");
 
-                    b.HasIndex("EnqueueTime");
-
-                    b.HasIndex("ExpirationTime");
-
                     b.HasIndex("OutboxId", "SequenceNumber")
                         .IsUnique()
                         .HasFilter("[OutboxId] IS NOT NULL");
@@ -170,6 +163,10 @@ namespace TestApi.Migrations
                     b.Property<Guid>("OutboxId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BusName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
@@ -190,12 +187,12 @@ namespace TestApi.Migrations
 
                     b.HasKey("OutboxId");
 
-                    b.HasIndex("Created");
+                    b.HasIndex("BusName", "Created");
 
                     b.ToTable("OutboxState");
                 });
 
-            modelBuilder.Entity("TestApi.WeatherForecast", b =>
+            modelBuilder.Entity("WeatherApi.WeatherForecast", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -220,6 +217,18 @@ namespace TestApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WeatherForecasts");
+                });
+
+            modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
+                {
+                    b.HasOne("MassTransit.EntityFrameworkCoreIntegration.OutboxState", null)
+                        .WithMany()
+                        .HasForeignKey("OutboxId");
+
+                    b.HasOne("MassTransit.EntityFrameworkCoreIntegration.InboxState", null)
+                        .WithMany()
+                        .HasForeignKey("InboxMessageId", "InboxConsumerId")
+                        .HasPrincipalKey("MessageId", "ConsumerId");
                 });
 #pragma warning restore 612, 618
         }
