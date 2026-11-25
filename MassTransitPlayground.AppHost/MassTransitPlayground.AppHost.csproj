@@ -17,4 +17,16 @@
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="11.0.0" />
   </ItemGroup>
 
+  <!-- CodeQL autobuild can invoke dotnet without an Aspire CLI or DNX launcher on PATH. -->
+  <Target Name="SetUpAspireCliBundleForGitHubActions"
+          BeforeTargets="ResolveAspireCliBundlePaths"
+          Condition="'$(GITHUB_ACTIONS)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(AspireCliPath)' == '' and '$(AspireCliBundlePath)' == ''">
+    <PropertyGroup>
+      <_AspireCliInstallPath>$(ASPIRE_HOME)</_AspireCliInstallPath>
+      <_AspireCliInstallPath Condition="'$(_AspireCliInstallPath)' == ''">$([System.Environment]::GetFolderPath(SpecialFolder.UserProfile))/.aspire</_AspireCliInstallPath>
+    </PropertyGroup>
+    <Exec Command="&quot;$(DOTNET_HOST_PATH)&quot; tool restore" WorkingDirectory="$(MSBuildProjectDirectory)/.." />
+    <Exec Command="&quot;$(DOTNET_HOST_PATH)&quot; tool run aspire setup --install-path &quot;$(_AspireCliInstallPath)&quot;" WorkingDirectory="$(MSBuildProjectDirectory)/.." />
+  </Target>
+
 </Project>
