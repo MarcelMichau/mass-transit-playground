@@ -7,7 +7,7 @@ var db = sql.AddDatabase("database");
 
 var serviceBus = builder.AddAzureServiceBus("messaging");
 
-builder.AddProject<Projects.PaymentApi>("paymentapi")
+builder.AddDotnetProject("paymentapi", "../PaymentApi/PaymentApi.csproj")
     .WithReference(serviceBus)
     .WithReference(db)
     .WaitFor(db);
